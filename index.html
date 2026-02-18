@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AN7 - Study Smart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: { 900: '#0a1628', 800: '#0f1d32', 700: '#1e3a5f' },
+                        accent: { yellow: '#fbbf24', gold: '#f59e0b' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .product-card:hover .product-actions { opacity: 1; transform: translateY(0); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .gradient-text { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .drag-active { border-color: #fbbf24 !important; background-color: #fef3c7 !important; }
+        .thumbnail-active { ring-2 ring-navy-900 ring-offset-2; }
+        .search-dropdown { max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="router.navigate('home')">
+                    <span class="font-display text-2xl font-bold text-navy-900 tracking-tight">AN7</span>
+                    <span class="ml-2 text-xs font-medium text-gray-500 hidden sm:block">Study Smart</span>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="hidden md:flex flex-1 max-w-lg mx-8 relative">
+                    <div class="relative w-full">
+                        <input type="text" id="search-input" placeholder="Search calculators..." 
+                            class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 focus:border-transparent outline-none"
+                            oninput="handleSearch(this.value)" onfocus="showSearchResults()" onblur="hideSearchResults()">
+                        <i data-lucide="search" class="w-5 h-5 text-gray-400 absolute left-3 top-2.5"></i>
+                        <div id="search-results" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 search-dropdown z-50"></div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex items-center space-x-4">
+                    <button onclick="router.navigate('shop')" class="hidden md:block text-gray-700 hover:text-navy-700 font-medium">Shop</button>
+                    <button onclick="router.navigate('about')" class="hidden md:block text-gray-700 hover:text-navy-700 font-medium">About</button>
+                    
+                    <!-- Admin Icon - Only visible to admin -->
+                    <button id="admin-nav-btn" onclick="router.navigate('admin')" class="hidden text-purple-600 hover:text-purple-800" title="Admin Panel">
+                        <i data-lucide="shield" class="w-5 h-5"></i>
+                    </button>
+                    
+                    <button onclick="toggleCart()" class="relative text-gray-600 hover:text-navy-700">
+                        <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                        <span id="cart-badge" class="absolute -top-2 -right-2 bg-accent-yellow text-navy-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                    </button>
+                    
+                    <button onclick="handleAccountClick()" class="text-gray-600 hover:text-navy-700">
+                        <i data-lucide="user" class="w-6 h-6"></i>
+                    </button>
+                    
+                    <button class="md:hidden text-gray-600" onclick="toggleMobileMenu()">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
+            <div class="px-4 py-3">
+                <input type="text" placeholder="Search..." class="w-full px-4 py-2 rounded-lg border border-gray-300 mb-3" oninput="handleSearch(this.value)">
+            </div>
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <button onclick="router.navigate('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">Home</button>
+                <button onclick="router.navigate('shop'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">Shop</button>
+                <button onclick="router.navigate('about'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">About</button>
+                <button onclick="router.navigate('contact'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">Contact</button>
+                <button id="mobile-admin-btn" onclick="router.navigate('admin'); toggleMobileMenu()" class="hidden w-full text-left px-3 py-2 text-base font-medium text-purple-700 hover:bg-purple-50">Admin Panel</button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="app" class="pt-16 flex-grow"></main>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="toggleCart()"></div>
+        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transform transition-transform translate-x-full flex flex-col" id="cart-panel">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h2 class="text-xl font-bold text-navy-900">Shopping Cart</h2>
+                <button onclick="toggleCart()" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+            <div class="border-t border-gray-200 p-6 space-y-4 bg-gray-50">
+                <div class="flex justify-between text-base font-medium text-gray-900">
+                    <p>Subtotal</p>
+                    <p id="cart-subtotal">Rs. 0.00</p>
+                </div>
+                <div id="delivery-info" class="text-sm text-gray-600"></div>
+                <div class="flex justify-between text-lg font-bold text-navy-900 border-t border-gray-300 pt-2">
+                    <p>Total</p>
+                    <p id="cart-total">Rs. 0.00</p>
+                </div>
+                <button onclick="router.navigate('checkout'); toggleCart()" class="w-full bg-navy-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-navy-800 transition flex items-center justify-center gap-2">
+                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Edit Modal (Admin) -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" onclick="closeProductModal()">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">Edit Product</h3>
+                        <button onclick="closeProductModal()" class="text-gray-400 hover:text-gray-600">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
+                        <input type="hidden" id="edit-product-id">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Product Name</label>
+                            <input type="text" id="edit-name" required class="mt-1 block w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-navy-900 focus:border-navy-900">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Price (Rs)</label>
+                                <input type="number" id="edit-price" required min="0" class="mt-1 block w-full rounded-lg border-gray-300 border px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Stock Qty</label>
+                                <input type="number" id="edit-stock" required min="0" class="mt-1 block w-full rounded-lg border-gray-300 border px-3 py-2">
+                            </div>
+                        </div>
+                        
+                        <!-- Main Image -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Main Product Image</label>
+                            <div id="drop-zone-main" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-navy-900 transition cursor-pointer" onclick="document.getElementById('file-input-main').click()">
+                                <input type="file" id="file-input-main" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'main')">
+                                <div id="upload-placeholder-main">
+                                    <i data-lucide="upload-cloud" class="w-8 h-8 mx-auto text-gray-400 mb-2"></i>
+                                    <p class="text-xs text-gray-600">Click to upload main image</p>
+                                </div>
+                                <img id="image-preview-main" class="hidden max-h-32 mx-auto rounded-lg">
+                                <input type="hidden" id="edit-image-main">
+                            </div>
+                        </div>
+
+                        <!-- Additional Images -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Additional Images (Max 4)</label>
+                            <div class="grid grid-cols-4 gap-2" id="additional-images-container">
+                                <!-- Static HTML for 4 image upload slots -->
+                                <div id="drop-zone-add-1" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-1').click()">
+                                    <input type="file" id="file-input-add-1" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 1)">
+                                    <div id="upload-placeholder-add-1">
+                                        <i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i>
+                                    </div>
+                                    <img id="image-preview-add-1" class="hidden w-full h-full object-cover rounded">
+                                    <input type="hidden" id="edit-image-add-1">
+                                </div>
+                                <div id="drop-zone-add-2" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-2').click()">
+                                    <input type="file" id="file-input-add-2" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 2)">
+                                    <div id="upload-placeholder-add-2">
+                                        <i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i>
+                                    </div>
+                                    <img id="image-preview-add-2" class="hidden w-full h-full object-cover rounded">
+                                    <input type="hidden" id="edit-image-add-2">
+                                </div>
+                                <div id="drop-zone-add-3" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-3').click()">
+                                    <input type="file" id="file-input-add-3" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 3)">
+                                    <div id="upload-placeholder-add-3">
+                                        <i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i>
+                                    </div>
+                                    <img id="image-preview-add-3" class="hidden w-full h-full object-cover rounded">
+                                    <input type="hidden" id="edit-image-add-3">
+                                </div>
+                                <div id="drop-zone-add-4" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-4').click()">
+                                    <input type="file" id="file-input-add-4" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 4)">
+                                    <div id="upload-placeholder-add-4">
+                                        <i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i>
+                                    </div>
+                                    <img id="image-preview-add-4" class="hidden w-full h-full object-cover rounded">
+                                    <input type="hidden" id="edit-image-add-4">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea id="edit-description" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 border px-3 py-2"></textarea>
+                        </div>
+                        <div class="mt-6 flex gap-3">
+                            <button type="button" onclick="closeProductModal()" class="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
+                            <button type="submit" class="flex-1 bg-navy-900 text-white py-2 px-4 rounded-lg hover:bg-navy-800">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Gallery Modal -->
+    <div id="gallery-modal" class="fixed inset-0 z-50 hidden bg-black/90 flex items-center justify-center p-4">
+        <button onclick="closeGallery()" class="absolute top-4 right-4 text-white hover:text-gray-300">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+        <div class="max-w-4xl w-full">
+            <img id="gallery-main-image" class="w-full max-h-[70vh] object-contain rounded-lg mb-4">
+            <div id="gallery-thumbnails" class="flex justify-center gap-2 overflow-x-auto"></div>
+        </div>
+    </div>
+
+    <!-- WhatsApp Float -->
+    <a href="https://wa.me/94717627177" target="_blank" class="fixed bottom-6 right-6 z-40 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition transform hover:scale-110 flex items-center gap-2 group">
+        <i data-lucide="message-circle" class="w-6 h-6"></i>
+        <span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap">Chat with us</span>
+    </a>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-24 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-navy-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+        <i data-lucide="check-circle" class="w-5 h-5 text-accent-yellow"></i>
+        <span id="toast-message">Success</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-navy-900 text-white mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-1">
+                    <span class="font-display text-3xl font-bold text-accent-yellow">AN7</span>
+                    <p class="mt-4 text-gray-300 text-sm leading-relaxed">
+                        Study Smart<br>
+                        Premium Casio calculators for Sri Lankan students.
+                    </p>
+                    <div class="flex gap-4 mt-6">
+                        <a href="https://www.facebook.com/profile.php?id=61577382759149" target="_blank" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-accent-yellow hover:text-navy-900 transition">
+                            <i data-lucide="facebook" class="w-5 h-5"></i>
+                        </a>
+                        <a href="https://www.tiktok.com/@pickpay88" target="_blank" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-accent-yellow hover:text-navy-900 transition">
+                            <i data-lucide="music-2" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><button onclick="router.navigate('shop')" class="hover:text-accent-yellow transition">Shop All</button></li>
+                        <li><button onclick="router.navigate('about')" class="hover:text-accent-yellow transition">About Us</button></li>
+                        <li><button onclick="router.navigate('contact')" class="hover:text-accent-yellow transition">Contact</button></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Customer Service</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><a href="#" onclick="showShippingInfo()" class="hover:text-accent-yellow transition">Shipping Policy</a></li>
+                        <li><a href="#" onclick="showReturnPolicy()" class="hover:text-accent-yellow transition">Returns</a></li>
+                        <li><a href="#" onclick="showFAQ()" class="hover:text-accent-yellow transition">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Contact Us</h3>
+                    <ul class="space-y-3 text-gray-300">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="mail" class="w-5 h-5 text-accent-yellow mt-0.5"></i>
+                            <a href="mailto:athifnular@icloud.com" class="hover:text-accent-yellow transition">athifnular@icloud.com</a>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="phone" class="w-5 h-5 text-accent-yellow mt-0.5"></i>
+                            <span>+94 71 762 7177</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="map-pin" class="w-5 h-5 text-accent-yellow mt-0.5"></i>
+                            <span>Matara, Dehiwala, Peradeniya</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-400 text-sm">&copy; 2024 AN7. Study Smart.</p>
+                <div class="flex items-center gap-6 text-sm text-gray-400">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-accent-yellow"></i>
+                        Secure Shopping
+                    </span>
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="truck" class="w-4 h-4 text-accent-yellow"></i>
+                        Islandwide Delivery
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Admin Credentials
+        const ADMIN_CREDENTIALS = {
+            email: 'athifnular@icloud.com',
+            password: 'Athif1010#'
+        };
+
+        // Encryption
+        const Crypto = {
+            key: 'AN7SecretKey2024',
+            encrypt(text) {
+                if (!text) return '';
+                let result = '';
+                for (let i = 0; i < text.length; i++) {
+                    result += String.fromCharCode(text.charCodeAt(i) ^ this.key.charCodeAt(i % this.key.length));
+                }
+                return btoa(result);
+            },
+            decrypt(text) {
+                if (!text) return '';
+                try {
+                    const decoded = atob(text);
+                    let result = '';
+                    for (let i = 0; i < decoded.length; i++) {
+                        result += String.fromCharCode(decoded.charCodeAt(i) ^ this.key.charCodeAt(i % this.key.length));
+                    }
+                    return result;
+                } catch { return ''; }
+            }
+        };
+
+        // Delivery Settings
+        const DELIVERY = {
+            FREE_ITEM_COUNT: 2,
+            CHARGE: 300
+        };
+
+        // Data Store
+        const store = {
+            users: JSON.parse(localStorage.getItem('an7_users')) || [],
+            currentUser: JSON.parse(localStorage.getItem('an7_currentUser')) || null,
+            isAdmin: sessionStorage.getItem('is_admin') === 'true',
+            cart: JSON.parse(localStorage.getItem('an7_cart')) || [],
+            products: JSON.parse(localStorage.getItem('an7_products')) || [
+                {
+                    id: 1,
+                    name: "Casio fx-991ES Plus 2nd Edition",
+                    price: 4850,
+                    originalPrice: 5500,
+                    image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=500&q=80",
+                    images: [],
+                    badge: "Original",
+                    stock: 15,
+                    description: "The most popular scientific calculator among Sri Lankan students.",
+                    category: "calculator"
+                },
+                {
+                    id: 2,
+                    name: "Casio fx-991ES Plus (Highcopy)",
+                    price: 2850,
+                    originalPrice: 3500,
+                    image: "https://images.unsplash.com/photo-1587145820266-a5951eebb23d?w=500&q=80",
+                    images: [],
+                    badge: "Best Value",
+                    stock: 8,
+                    description: "High-quality A-grade replica with identical functionality.",
+                    category: "calculator"
+                },
+                {
+                    id: 3,
+                    name: "Casio fx-991EX Classwiz",
+                    price: 7200,
+                    originalPrice: 8500,
+                    image: "https://images.unsplash.com/photo-1564466021188-1e1f7337155d?w=500&q=80",
+                    images: [],
+                    badge: "Premium",
+                    stock: 5,
+                    description: "Advanced scientific calculator with spreadsheet functionality.",
+                    category: "calculator"
+                }
+            ],
+            orders: JSON.parse(localStorage.getItem('an7_orders')) || []
+        };
+
+        // Check admin status on load
+        function checkAdminStatus() {
+            if (store.isAdmin) {
+                document.getElementById('admin-nav-btn')?.classList.remove('hidden');
+                document.getElementById('mobile-admin-btn')?.classList.remove('hidden');
+            }
+        }
+
+        // Router
+        const router = {
+            currentRoute: 'home',
+            navigate(route, params = {}) {
+                this.currentRoute = route;
+                window.scrollTo(0, 0);
+                const app = document.getElementById('app');
+                app.innerHTML = '';
+                
+                switch(route) {
+                    case 'home': app.appendChild(views.home()); break;
+                    case 'shop': app.appendChild(views.shop(params)); break;
+                    case 'product': app.appendChild(views.product(params.id)); break;
+                    case 'checkout': app.appendChild(views.checkout()); break;
+                    case 'about': app.appendChild(views.about()); break;
+                    case 'contact': app.appendChild(views.contact()); break;
+                    case 'account': app.appendChild(views.account()); break;
+                    case 'admin': app.appendChild(views.admin()); break;
+                    case 'login': app.appendChild(views.login()); break;
+                    case 'signup': app.appendChild(views.signup()); break;
+                    default: app.appendChild(views.home());
+                }
+                lucide.createIcons();
+                checkAdminStatus();
+            }
+        };
+
+        // Views
+        const views = {
+            home() {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <section class="relative bg-navy-900 overflow-hidden">
+                        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1920&q=80')] bg-cover bg-center opacity-10"></div>
+                        <div class="absolute inset-0 bg-gradient-to-r from-navy-900 via-navy-900/95 to-transparent"></div>
+                        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+                            <div class="lg:w-2/3">
+                                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-accent-yellow text-sm font-medium mb-6">
+                                    <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                    Trusted by 10,000+ Students
+                                </div>
+                                <h1 class="text-5xl lg:text-7xl font-display font-bold text-white mb-6 leading-tight">
+                                    Study <span class="gradient-text">Smart</span><br>
+                                    with <span class="text-white">AN7</span>
+                                </h1>
+                                <p class="text-xl text-gray-300 mb-8 max-w-2xl">
+                                    Premium Casio scientific calculators with official warranty. 
+                                    Serving Matara, Dehiwala, Peradeniya and islandwide.
+                                </p>
+                                <div class="flex flex-col sm:flex-row gap-4">
+                                    <button onclick="router.navigate('shop')" class="px-8 py-4 bg-accent-yellow text-navy-900 rounded-lg font-bold text-lg hover:bg-accent-gold transition flex items-center justify-center gap-2">
+                                        Shop Now
+                                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                                    </button>
+                                    <a href="https://wa.me/94717627177" target="_blank" class="px-8 py-4 bg-white/10 text-white border border-white/30 rounded-lg font-bold text-lg hover:bg-white/20 transition flex items-center justify-center gap-2">
+                                        <i data-lucide="message-circle" class="w-5 h-5"></i>
+                                        WhatsApp Order
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="py-16 bg-white">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                                ${[
+                                    { icon: 'shield', title: '1 Year Warranty', desc: 'Official Casio warranty' },
+                                    { icon: 'refresh-cw', title: '1-1 Replacement', desc: 'Defective unit replacement' },
+                                    { icon: 'graduation-cap', title: 'Student Prices', desc: 'Competitive pricing' },
+                                    { icon: 'truck', title: 'Free Delivery 2+', desc: 'Rs. 300 for single' }
+                                ].map(f => `
+                                    <div class="text-center p-6 rounded-2xl bg-gray-50 hover:bg-navy-50 transition group cursor-pointer">
+                                        <div class="w-14 h-14 mx-auto mb-4 bg-navy-900 rounded-xl flex items-center justify-center text-accent-yellow group-hover:scale-110 transition">
+                                            <i data-lucide="${f.icon}" class="w-7 h-7"></i>
+                                        </div>
+                                        <h3 class="font-bold text-navy-900 mb-1">${f.title}</h3>
+                                        <p class="text-sm text-gray-600">${f.desc}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="py-20 bg-gray-50">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div class="flex justify-between items-end mb-12">
+                                <div>
+                                    <h2 class="text-3xl font-display font-bold text-navy-900 mb-2">Featured Calculators</h2>
+                                    <p class="text-gray-600">Exam-approved models for engineering & science students</p>
+                                </div>
+                                <button onclick="router.navigate('shop')" class="hidden md:flex items-center gap-2 text-navy-700 font-medium hover:text-navy-900">
+                                    View All <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                ${store.products.slice(0, 3).map(p => components.productCard(p)).join('')}
+                            </div>
+                        </div>
+                    </section>
+                `;
+                return div;
+            },
+
+            shop(params = {}) {
+                const div = document.createElement('div');
+                const searchQuery = params.search || '';
+                const category = params.category || 'all';
+                
+                let filtered = store.products;
+                
+                if (searchQuery) {
+                    filtered = filtered.filter(p => 
+                        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        p.description.toLowerCase().includes(searchQuery.toLowerCase())
+                    );
+                }
+                
+                if (category !== 'all') {
+                    filtered = filtered.filter(p => p.category === category);
+                }
+
+                div.innerHTML = `
+                    <div class="bg-navy-900 text-white py-16">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <h1 class="text-4xl font-display font-bold mb-4">${searchQuery ? `Search: "${searchQuery}"` : 'Shop Calculators'}</h1>
+                            <p class="text-gray-300">${filtered.length} products found</p>
+                        </div>
+                    </div>
+                    
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <!-- Filters -->
+                        <div class="flex flex-wrap gap-4 mb-8">
+                            <button onclick="router.navigate('shop')" class="px-4 py-2 rounded-lg ${category === 'all' ? 'bg-navy-900 text-white' : 'bg-gray-200 text-gray-700'}">All</button>
+                            <button onclick="router.navigate('shop', {category: 'calculator'})" class="px-4 py-2 rounded-lg ${category === 'calculator' ? 'bg-navy-900 text-white' : 'bg-gray-200 text-gray-700'}">Calculators</button>
+                            <button onclick="router.navigate('shop', {category: 'accessory'})" class="px-4 py-2 rounded-lg ${category === 'accessory' ? 'bg-navy-900 text-white' : 'bg-gray-200 text-gray-700'}">Accessories</button>
+                        </div>
+
+                        ${filtered.length === 0 ? 
+                            '<div class="text-center py-20"><p class="text-gray-500 text-lg">No products found</p></div>' :
+                            `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                ${filtered.map(p => components.productCard(p)).join('')}
+                            </div>`
+                        }
+                    </div>
+                `;
+                return div;
+            },
+
+            product(id) {
+                const product = store.products.find(p => p.id === id) || store.products[0];
+                const relatedProducts = store.products.filter(p => p.id !== id).slice(0, 3);
+                
+                // Combine main image with additional images
+                const allImages = [product.image, ...(product.images || [])].filter(img => img);
+                
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="bg-gray-50 min-h-screen py-8">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <!-- Breadcrumb -->
+                            <nav class="flex items-center gap-2 text-sm text-gray-600 mb-8">
+                                <button onclick="router.navigate('home')" class="hover:text-navy-900">Home</button>
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                <button onclick="router.navigate('shop')" class="hover:text-navy-900">Shop</button>
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                <span class="text-navy-900 font-medium truncate max-w-xs">${product.name}</span>
+                            </nav>
+
+                            <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-12">
+                                <div class="grid md:grid-cols-2 gap-8 p-8">
+                                    <!-- Image Gallery -->
+                                    <div class="space-y-4">
+                                        <div class="aspect-square bg-gray-100 rounded-xl overflow-hidden cursor-zoom-in" onclick="openGallery(0)">
+                                            <img id="main-product-image" src="${product.image}" alt="${product.name}" class="w-full h-full object-cover hover:scale-105 transition duration-500">
+                                        </div>
+                                        ${allImages.length > 1 ? `
+                                            <div class="flex gap-2 overflow-x-auto pb-2">
+                                                ${allImages.map((img, idx) => `
+                                                    <button onclick="switchMainImage('${img}', ${idx})" class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${idx === 0 ? 'border-navy-900' : 'border-gray-200'} hover:border-navy-900 transition">
+                                                        <img src="${img}" class="w-full h-full object-cover">
+                                                    </button>
+                                                `).join('')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    
+                                    <!-- Product Info -->
+                                    <div class="space-y-6">
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="px-3 py-1 bg-accent-yellow/20 text-navy-900 text-xs font-bold rounded-full">${product.badge}</span>
+                                                ${product.stock > 0 ? `<span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">In Stock (${product.stock})</span>` : '<span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full">Out of Stock</span>'}
+                                            </div>
+                                            <h1 class="text-3xl font-display font-bold text-navy-900 mb-2">${product.name}</h1>
+                                            <div class="flex items-center gap-4">
+                                                <span class="text-3xl font-bold text-navy-900">Rs. ${product.price.toLocaleString()}</span>
+                                                ${product.originalPrice ? `<span class="text-xl text-gray-400 line-through">Rs. ${product.originalPrice.toLocaleString()}</span>` : ''}
+                                            </div>
+                                        </div>
+                                        
+                                        <p class="text-gray-600 leading-relaxed">${product.description}</p>
+                                        
+                                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                            <p class="text-sm text-blue-800 flex items-center gap-2">
+                                                <i data-lucide="truck" class="w-4 h-4"></i>
+                                                Free delivery for 2+ items | Rs. 300 for single item
+                                            </p>
+                                        </div>
+
+                                        <div class="space-y-4 pt-4">
+                                            <div class="flex items-center gap-4">
+                                                <div class="flex items-center border border-gray-300 rounded-lg">
+                                                    <button onclick="updateQty(-1)" class="px-4 py-2 hover:bg-gray-100">-</button>
+                                                    <input type="number" id="qty-input" value="1" min="1" max="${product.stock}" class="w-16 text-center border-x border-gray-300 py-2 focus:outline-none">
+                                                    <button onclick="updateQty(1)" class="px-4 py-2 hover:bg-gray-100">+</button>
+                                                </div>
+                                                <button onclick="addToCart(${product.id}, parseInt(document.getElementById('qty-input').value))" class="flex-1 bg-navy-900 text-white py-3 rounded-lg font-bold hover:bg-navy-800 transition flex items-center justify-center gap-2">
+                                                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                                                    Add to Cart
+                                                </button>
+                                            </div>
+                                            <button onclick="buyOnWhatsApp(${product.id})" class="w-full bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600 transition flex items-center justify-center gap-2">
+                                                <i data-lucide="message-circle" class="w-5 h-5"></i>
+                                                Order via WhatsApp
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Related Products -->
+                            <div class="mt-12">
+                                <h2 class="text-2xl font-bold text-navy-900 mb-6">You May Also Like</h2>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    ${relatedProducts.map(p => components.productCard(p)).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Store current product images for gallery
+                window.currentProductImages = allImages;
+                
+                return div;
+            },
+
+            checkout() {
+                const div = document.createElement('div');
+                const subtotal = store.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+                const itemCount = store.cart.reduce((sum, i) => sum + i.quantity, 0);
+                const delivery = itemCount >= DELIVERY.FREE_ITEM_COUNT ? 0 : DELIVERY.CHARGE;
+                const total = subtotal + delivery;
+                
+                div.innerHTML = `
+                    <div class="max-w-7xl mx-auto px-4 py-12">
+                        <div class="grid lg:grid-cols-2 gap-12">
+                            <div>
+                                <h1 class="text-3xl font-bold text-navy-900 mb-8">Checkout</h1>
+                                
+                                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                                    <div class="flex items-start gap-3">
+                                        <i data-lucide="truck" class="w-5 h-5 text-blue-600 mt-0.5"></i>
+                                        <div>
+                                            <h4 class="font-bold text-blue-900">Delivery Information</h4>
+                                            <p class="text-sm text-blue-700">
+                                                ${itemCount >= DELIVERY.FREE_ITEM_COUNT 
+                                                    ? `✓ You have ${itemCount} items. FREE delivery!` 
+                                                    : `You have ${itemCount} item. Add ${DELIVERY.FREE_ITEM_COUNT - itemCount} more for FREE delivery (Rs. ${DELIVERY.CHARGE})`}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-8">
+                                    <h3 class="font-bold text-gray-900 mb-4">Select Payment Method</h3>
+                                    <div class="space-y-3">
+                                        <label class="flex items-center p-4 border-2 border-navy-900 rounded-xl cursor-pointer bg-navy-50" onclick="selectPayment('cod')">
+                                            <input type="radio" name="payment" value="cod" checked class="w-5 h-5 text-navy-900">
+                                            <div class="ml-4 flex-1">
+                                                <div class="flex items-center gap-2">
+                                                    <i data-lucide="banknote" class="w-5 h-5 text-navy-900"></i>
+                                                    <span class="font-bold text-navy-900">Cash on Delivery</span>
+                                                </div>
+                                                <p class="text-sm text-gray-600 mt-1">Pay when you receive the order</p>
+                                            </div>
+                                        </label>
+                                        
+                                        <label class="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-navy-900 transition" onclick="selectPayment('bank')">
+                                            <input type="radio" name="payment" value="bank" class="w-5 h-5 text-navy-900">
+                                            <div class="ml-4 flex-1">
+                                                <div class="flex items-center gap-2">
+                                                    <i data-lucide="building-2" class="w-5 h-5 text-navy-900"></i>
+                                                    <span class="font-bold text-gray-900">Bank Transfer</span>
+                                                </div>
+                                                <p class="text-sm text-gray-600 mt-1">Transfer to BOC account</p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div id="bank-details" class="hidden mb-8 bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                                    <h4 class="font-bold text-navy-900 mb-4 flex items-center gap-2">
+                                        <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                                        Bank Transfer Details
+                                    </h4>
+                                    <div class="space-y-2 text-sm">
+                                        <p><span class="font-medium">Bank:</span> Bank of Ceylon (BOC)</p>
+                                        <p><span class="font-medium">Account Name:</span> M.M.M.A.Nular</p>
+                                        <p><span class="font-medium">Account Number:</span> 94165151</p>
+                                        <p><span class="font-medium">Branch:</span> Matara</p>
+                                        <p class="text-gray-600 mt-4 bg-white p-3 rounded-lg">
+                                            <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                                            Please transfer the exact amount and send the screenshot via WhatsApp after placing order
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <form id="checkout-form" onsubmit="processCheckout(event)" class="space-y-6 bg-white rounded-xl shadow-sm p-6">
+                                    <div class="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                                            <input type="text" name="firstName" required class="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-navy-900 outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                                            <input type="text" name="lastName" required class="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-navy-900 outline-none">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                        <input type="email" name="email" required class="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-navy-900 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                                        <input type="tel" name="phone" required placeholder="07X XXX XXXX" class="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-navy-900 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Delivery Address *</label>
+                                        <textarea name="address" required rows="3" class="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-navy-900 outline-none"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                                        <select name="city" required class="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-navy-900 outline-none">
+                                            <option value="">Select City</option>
+                                            <option value="Colombo">Colombo</option>
+                                            <option value="Dehiwala">Dehiwala</option>
+                                            <option value="Matara">Matara</option>
+                                            <option value="Galle">Galle</option>
+                                            <option value="Kandy">Kandy</option>
+                                            <option value="Peradeniya">Peradeniya</option>
+                                            <option value="Jaffna">Jaffna</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="w-full bg-navy-900 text-white py-4 rounded-lg font-bold text-lg hover:bg-navy-800 transition flex items-center justify-center gap-2">
+                                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                        Place Order
+                                    </button>
+                                </form>
+                            </div>
+                            <div>
+                                <div class="bg-gray-50 rounded-xl p-6 sticky top-24">
+                                    <h2 class="text-xl font-bold text-navy-900 mb-6">Order Summary</h2>
+                                    <div class="space-y-4 mb-6">
+                                        ${store.cart.map(item => `
+                                            <div class="flex justify-between items-center">
+                                                <div class="flex items-center gap-3">
+                                                    <img src="${item.image}" class="w-12 h-12 rounded object-cover">
+                                                    <div>
+                                                        <p class="font-medium text-sm">${item.name}</p>
+                                                        <p class="text-xs text-gray-500">Qty: ${item.quantity}</p>
+                                                    </div>
+                                                </div>
+                                                <span class="font-medium">Rs. ${(item.price * item.quantity).toLocaleString()}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    <div class="border-t border-gray-200 pt-4 space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span>Subtotal (${itemCount} items)</span>
+                                            <span>Rs. ${subtotal.toLocaleString()}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Delivery</span>
+                                            <span class="${delivery === 0 ? 'text-green-600 font-medium' : ''}">${delivery === 0 ? 'FREE' : 'Rs. ' + delivery.toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                    <div class="border-t border-gray-200 mt-4 pt-4 flex justify-between items-center">
+                                        <span class="text-lg font-bold text-navy-900">Total</span>
+                                        <span class="text-2xl font-bold text-navy-900">Rs. ${total.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return div;
+            },
+
+            admin() {
+    console.log('Admin view loaded, isAdmin:', store.isAdmin);
+    
+    if (!store.isAdmin) {
+        console.log('Access denied - redirecting to login');
+        router.navigate('login');
+        return document.createElement('div');
+    }
+
+    const div = document.createElement('div');
+    div.innerHTML = `
+        <div class="min-h-screen bg-gray-100 pb-20">
+            <header class="bg-navy-900 text-white shadow-lg">
+                <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                    <h1 class="font-display font-bold text-xl">AN7 Admin Panel</h1>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm text-gray-300">Welcome, Admin</span>
+                        <button onclick="logoutAdmin()" class="text-sm bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20">Logout</button>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="max-w-7xl mx-auto px-4 py-8">
+                <!-- Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-gray-600 text-sm font-medium mb-2">Total Products</h3>
+                        <p class="text-3xl font-bold text-navy-900">${store.products.length}</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-gray-600 text-sm font-medium mb-2">Total Orders</h3>
+                        <p class="text-3xl font-bold text-navy-900">${store.orders.length}</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-gray-600 text-sm font-medium mb-2">Low Stock</h3>
+                        <p class="text-3xl font-bold text-red-600">${store.products.filter(p => p.stock < 5).length}</p>
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+                    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-navy-900">Products</h2>
+                        <button onclick="openProductModal()" class="bg-navy-900 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-navy-800">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add New
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-600 text-sm">
+                                <tr>
+                                    <th class="px-6 py-4">Product</th>
+                                    <th class="px-6 py-4">Price</th>
+                                    <th class="px-6 py-4">Stock</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                ${store.products.length === 0 ? '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">No products found</td></tr>' : 
+                                store.products.map(p => `
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <img src="${p.image}" class="w-12 h-12 rounded-lg object-cover" onerror="this.src='https://via.placeholder.com/48'">
+                                                <span class="font-medium text-navy-900">${p.name}</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">Rs. ${p.price.toLocaleString()}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="${p.stock < 5 ? 'text-red-600 font-bold' : ''}">${p.stock}</span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <button onclick="editProduct(${p.id})" class="text-blue-600 hover:text-blue-800 mr-4">Edit</button>
+                                            <button onclick="deleteProduct(${p.id})" class="text-red-600 hover:text-red-800">Delete</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Orders Table - FIXED: Added checks for undefined values -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-bold text-navy-900">Recent Orders</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-600 text-sm">
+                                <tr>
+                                    <th class="px-6 py-4">Order ID</th>
+                                    <th class="px-6 py-4">Customer</th>
+                                    <th class="px-6 py-4">Payment</th>
+                                    <th class="px-6 py-4">Total</th>
+                                    <th class="px-6 py-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                ${store.orders.length === 0 ? '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No orders yet</td></tr>' : 
+                                store.orders.slice().reverse().slice(0, 10).map(o => {
+                                    // FIX: Handle undefined values safely
+                                    const paymentMethod = (o.paymentMethod || 'cod').toUpperCase();
+                                    const status = o.status || 'pending';
+                                    const total = o.total || 0;
+                                    const customer = o.customer || 'Unknown';
+                                    const orderId = o.id || 'N/A';
+                                    
+                                    return `
+                                        <tr>
+                                            <td class="px-6 py-4 font-medium">#${orderId}</td>
+                                            <td class="px-6 py-4">${customer}</td>
+                                            <td class="px-6 py-4">
+                                                <span class="px-2 py-1 rounded text-xs ${paymentMethod === 'COD' ? 'bg-gray-100' : 'bg-blue-100 text-blue-800'}">
+                                                    ${paymentMethod}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">Rs. ${total.toLocaleString()}</td>
+                                            <td class="px-6 py-4">
+                                                <span class="px-2 py-1 rounded-full text-xs ${status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                                    ${status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    return div;
+},
+
+
+            about() {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="bg-navy-900 text-white py-24">
+                        <div class="max-w-4xl mx-auto px-4 text-center">
+                            <h1 class="text-5xl font-display font-bold mb-6">Our Story</h1>
+                            <p class="text-xl text-gray-300">Study Smart with AN7</p>
+                        </div>
+                    </div>
+                    <div class="max-w-4xl mx-auto px-4 py-16">
+                        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                            <h2 class="text-2xl font-bold text-navy-900 mb-4">The Beginning</h2>
+                            <p class="text-gray-600">AN7 was born in 2022 when I was a 21-year-old engineering student at the University of Peradeniya. What started as selling calculators to friends quickly grew into serving thousands of students across Sri Lanka.</p>
+                        </div>
+                    </div>
+                `;
+                return div;
+            },
+
+            contact() {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="bg-navy-900 text-white py-24">
+                        <div class="max-w-4xl mx-auto px-4 text-center">
+                            <h1 class="text-5xl font-display font-bold mb-6">Contact Us</h1>
+                        </div>
+                    </div>
+                    <div class="max-w-7xl mx-auto px-4 py-16">
+                        <div class="grid lg:grid-cols-2 gap-12">
+                            <div class="bg-white rounded-2xl shadow-lg p-8">
+                                <h2 class="text-2xl font-bold text-navy-900 mb-6">Get in Touch</h2>
+                                <div class="space-y-4">
+                                    <a href="mailto:athifnular@icloud.com" class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition">
+                                        <i data-lucide="mail" class="w-6 h-6 text-navy-900"></i>
+                                        <div>
+                                            <p class="font-medium text-navy-900">Email</p>
+                                            <p class="text-gray-600">athifnular@icloud.com</p>
+                                        </div>
+                                    </a>
+                                    <a href="https://wa.me/94717627177" target="_blank" class="flex items-center gap-4 p-4 rounded-xl bg-green-50 hover:bg-green-100 transition">
+                                        <i data-lucide="message-circle" class="w-6 h-6 text-green-600"></i>
+                                        <div>
+                                            <p class="font-medium text-navy-900">WhatsApp</p>
+                                            <p class="text-gray-600">+94 71 762 7177</p>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-2xl shadow-lg p-8">
+                                <h2 class="text-2xl font-bold text-navy-900 mb-6">Send Message</h2>
+                                <form onsubmit="handleContactSubmit(event)" class="space-y-4">
+                                    <input type="text" placeholder="Name" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none">
+                                    <input type="email" placeholder="Email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none">
+                                    <textarea placeholder="Message" rows="4" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none"></textarea>
+                                    <button type="submit" class="w-full bg-navy-900 text-white py-4 rounded-lg font-bold hover:bg-navy-800 transition">Send</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return div;
+            },
+
+            login() {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+                        <div class="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
+                            <div class="text-center mb-8">
+                                <h1 class="text-3xl font-display font-bold text-navy-900">Welcome Back</h1>
+                                <p class="text-gray-600 mt-2">Sign in to your AN7 account</p>
+                            </div>
+                            <form onsubmit="handleLogin(event)" class="space-y-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                    <input type="email" name="email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                    <input type="password" name="password" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none">
+                                </div>
+                                <button type="submit" class="w-full bg-navy-900 text-white py-3 rounded-lg font-bold hover:bg-navy-800 transition">Sign In</button>
+                            </form>
+                            <div class="mt-6 text-center">
+                                <p class="text-gray-600">Don't have an account? <button onclick="router.navigate('signup')" class="text-navy-900 font-medium hover:underline">Sign up</button></p>
+                                <p class="text-sm text-gray-500 mt-4">Admin? Use your admin email to access admin panel</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return div;
+            },
+
+            signup() {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+                        <div class="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
+                            <h1 class="text-3xl font-display font-bold text-navy-900 text-center mb-8">Create Account</h1>
+                            <form onsubmit="handleSignup(event)" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <input type="text" name="firstName" placeholder="First Name" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none">
+                                    <input type="text" name="lastName" placeholder="Last Name" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none">
+                                </div>
+                                <input type="email" name="email" placeholder="Email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none">
+                                <input type="password" name="password" placeholder="Password" required minlength="6" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none">
+                                <button type="submit" class="w-full bg-navy-900 text-white py-3 rounded-lg font-bold hover:bg-navy-800 transition">Create Account</button>
+                            </form>
+                            <p class="text-center mt-6 text-gray-600">Already have an account? <button onclick="router.navigate('login')" class="text-navy-900 font-medium hover:underline">Sign in</button></p>
+                        </div>
+                    </div>
+                `;
+                return div;
+            },
+
+            account() {
+                if (!store.currentUser) {
+                    router.navigate('login');
+                    return document.createElement('div');
+                }
+                const userOrders = store.orders.filter(o => o.customerId === store.currentUser.id);
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="max-w-7xl mx-auto px-4 py-12">
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <aside class="w-full md:w-64">
+                                <div class="bg-white rounded-xl shadow-sm p-6 sticky top-24">
+                                    <div class="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200">
+                                        <div class="w-12 h-12 bg-navy-900 rounded-full flex items-center justify-center text-white font-bold text-xl">${store.currentUser.name.charAt(0)}</div>
+                                        <div>
+                                            <p class="font-bold text-navy-900">${store.currentUser.name}</p>
+                                            <p class="text-sm text-gray-600">${store.currentUser.email}</p>
+                                            ${store.isAdmin ? '<span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">Admin</span>' : ''}
+                                        </div>
+                                    </div>
+                                    <nav class="space-y-2">
+                                        <button class="w-full text-left px-4 py-2 rounded-lg bg-navy-50 text-navy-900 font-medium">My Orders</button>
+                                        ${store.isAdmin ? `<button onclick="router.navigate('admin')" class="w-full text-left px-4 py-2 rounded-lg text-purple-700 hover:bg-purple-50">Admin Panel</button>` : ''}
+                                        <button onclick="logout()" class="w-full text-left px-4 py-2 rounded-lg text-red-600 hover:bg-red-50">Logout</button>
+                                    </nav>
+                                </div>
+                            </aside>
+                            <div class="flex-1">
+                                <div class="bg-white rounded-xl shadow-sm p-8">
+                                    <h2 class="text-2xl font-bold text-navy-900 mb-6">My Orders</h2>
+                                    ${userOrders.length === 0 ? '<div class="text-center py-12 text-gray-500"><i data-lucide="package" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i><p>No orders yet</p></div>' : 
+                                    '<div class="space-y-4">' + userOrders.map(o => `
+                                        <div class="border border-gray-200 rounded-lg p-4">
+                                            <div class="flex justify-between items-start mb-4">
+                                                <div>
+                                                    <p class="font-bold text-navy-900">Order #${o.id}</p>
+                                                    <p class="text-sm text-gray-600">${new Date(o.date).toLocaleDateString()}</p>
+                                                </div>
+                                                <span class="px-3 py-1 rounded-full text-sm font-medium ${o.status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${o.status}</span>
+                                            </div>
+                                            <p class="font-bold text-right">Rs. ${o.total.toLocaleString()}</p>
+                                        </div>
+                                    `).join('') + '</div>'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return div;
+            }
+        };
+
+        const components = {
+            productCard(product) {
+                const discount = product.originalPrice ? Math.round((1 - product.price/product.originalPrice) * 100) : 0;
+                return `
+                    <div class="product-card group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 cursor-pointer" onclick="router.navigate('product', {id: ${product.id}})">
+                        <div class="relative aspect-square bg-gray-100 overflow-hidden">
+                            <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            ${discount > 0 ? `<span class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">-${discount}%</span>` : ''}
+                            <span class="absolute top-4 right-4 bg-white/90 text-navy-900 text-xs font-bold px-3 py-1 rounded-full">${product.badge}</span>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-bold text-navy-900 mb-2 line-clamp-2">${product.name}</h3>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-xl font-bold text-navy-900">Rs. ${product.price.toLocaleString()}</span>
+                                    ${product.originalPrice ? `<span class="text-sm text-gray-400 line-through ml-2">Rs. ${product.originalPrice.toLocaleString()}</span>` : ''}
+                                </div>
+                                <span class="text-xs ${product.stock > 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'} px-2 py-1 rounded-full font-medium">${product.stock > 0 ? 'In Stock' : 'Out of Stock'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        // Search Functions
+        function handleSearch(query) {
+            const resultsDiv = document.getElementById('search-results');
+            if (!query.trim()) {
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            const filtered = store.products.filter(p => 
+                p.name.toLowerCase().includes(query.toLowerCase()) ||
+                p.description.toLowerCase().includes(query.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                resultsDiv.innerHTML = '<div class="p-4 text-gray-500 text-center">No products found</div>';
+            } else {
+                resultsDiv.innerHTML = filtered.slice(0, 5).map(p => `
+                    <div class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0" onclick="router.navigate('product', {id: ${p.id}}); hideSearchResults();">
+                        <img src="${p.image}" class="w-12 h-12 rounded object-cover">
+                        <div class="flex-1">
+                            <p class="font-medium text-navy-900 text-sm">${p.name}</p>
+                            <p class="text-xs text-gray-500">Rs. ${p.price.toLocaleString()}</p>
+                        </div>
+                    </div>
+                `).join('') + (filtered.length > 5 ? `<div class="p-3 text-center text-sm text-navy-900 font-medium cursor-pointer hover:bg-gray-50" onclick="router.navigate('shop', {search: '${query}'}); hideSearchResults();">View all ${filtered.length} results</div>` : '');
+            }
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function showSearchResults() {
+            const input = document.getElementById('search-input');
+            if (input && input.value.trim()) {
+                document.getElementById('search-results').classList.remove('hidden');
+            }
+        }
+
+        function hideSearchResults() {
+            setTimeout(() => {
+                document.getElementById('search-results')?.classList.add('hidden');
+            }, 200);
+        }
+
+        // Image Gallery Functions
+        function switchMainImage(src, index) {
+            document.getElementById('main-product-image').src = src;
+            // Update thumbnail borders
+            document.querySelectorAll('[id^="gallery-thumb-"]').forEach((thumb, idx) => {
+                if (idx === index) {
+                    thumb.classList.add('border-navy-900');
+                    thumb.classList.remove('border-gray-200');
+                } else {
+                    thumb.classList.remove('border-navy-900');
+                    thumb.classList.add('border-gray-200');
+                }
+            });
+        }
+
+        function openGallery(startIndex) {
+            const modal = document.getElementById('gallery-modal');
+            const mainImg = document.getElementById('gallery-main-image');
+            const thumbsDiv = document.getElementById('gallery-thumbnails');
+            
+            mainImg.src = window.currentProductImages[startIndex];
+            
+            thumbsDiv.innerHTML = window.currentProductImages.map((img, idx) => `
+                <button onclick="document.getElementById('gallery-main-image').src = '${img}'" class="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${idx === startIndex ? 'border-accent-yellow' : 'border-white'} hover:border-accent-yellow transition">
+                    <img src="${img}" class="w-full h-full object-cover">
+                </button>
+            `).join('');
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeGallery() {
+            document.getElementById('gallery-modal').classList.add('hidden');
+        }
+
+        // Image Upload Functions
+        function handleImageSelect(event, type, index = null) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Image too large. Max 5MB', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (type === 'main') {
+                    document.getElementById('image-preview-main').src = e.target.result;
+                    document.getElementById('image-preview-main').classList.remove('hidden');
+                    document.getElementById('upload-placeholder-main').classList.add('hidden');
+                    document.getElementById('edit-image-main').value = e.target.result;
+                } else {
+                    document.getElementById(`image-preview-add-${index}`).src = e.target.result;
+                    document.getElementById(`image-preview-add-${index}`).classList.remove('hidden');
+                    document.getElementById(`upload-placeholder-add-${index}`).classList.add('hidden');
+                    document.getElementById(`edit-image-add-${index}`).value = e.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Payment Functions
+        function selectPayment(method) {
+            document.querySelectorAll('input[name="payment"]').forEach(input => {
+                const label = input.closest('label');
+                if (input.value === method) {
+                    label.classList.add('border-navy-900', 'bg-navy-50');
+                    label.classList.remove('border-gray-200');
+                } else {
+                    label.classList.remove('border-navy-900', 'bg-navy-50');
+                    label.classList.add('border-gray-200');
+                }
+            });
+
+            const bankDetails = document.getElementById('bank-details');
+            if (method === 'bank') {
+                bankDetails?.classList.remove('hidden');
+            } else {
+                bankDetails?.classList.add('hidden');
+            }
+        }
+
+        // Cart Functions
+        function toggleCart() {
+            const sidebar = document.getElementById('cart-sidebar');
+            const panel = document.getElementById('cart-panel');
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                setTimeout(() => panel.classList.remove('translate-x-full'), 10);
+                renderCart();
+            } else {
+                panel.classList.add('translate-x-full');
+                setTimeout(() => sidebar.classList.add('hidden'), 300);
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items');
+            const badge = document.getElementById('cart-badge');
+            const subtotalEl = document.getElementById('cart-subtotal');
+            const totalEl = document.getElementById('cart-total');
+            const deliveryInfo = document.getElementById('delivery-info');
+            
+            const totalItems = store.cart.reduce((sum, item) => sum + item.quantity, 0);
+            const subtotal = store.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const delivery = totalItems >= DELIVERY.FREE_ITEM_COUNT ? 0 : DELIVERY.CHARGE;
+            const total = subtotal + delivery;
+            
+            if (totalItems > 0) {
+                badge.textContent = totalItems;
+                badge.classList.remove('hidden');
+                subtotalEl.textContent = `Rs. ${subtotal.toLocaleString()}`;
+                totalEl.textContent = `Rs. ${total.toLocaleString()}`;
+                
+                deliveryInfo.innerHTML = totalItems >= DELIVERY.FREE_ITEM_COUNT 
+                    ? '<span class="text-green-600 font-medium">✓ Free delivery (2+ items)</span>'
+                    : `Delivery: Rs. ${DELIVERY.CHARGE} (Add ${DELIVERY.FREE_ITEM_COUNT - totalItems} more for free)`;
+                
+                container.innerHTML = store.cart.map(item => `
+                    <div class="flex gap-4 bg-gray-50 p-4 rounded-xl">
+                        <img src="${item.image}" class="w-20 h-20 object-cover rounded-lg">
+                        <div class="flex-1">
+                            <h4 class="font-medium text-navy-900">${item.name}</h4>
+                            <p class="text-sm text-gray-600">Rs. ${item.price.toLocaleString()}</p>
+                            <div class="flex items-center gap-3 mt-2">
+                                <button onclick="updateCartQty(${item.id}, -1)" class="w-6 h-6 rounded bg-white border flex items-center justify-center">-</button>
+                                <span>${item.quantity}</span>
+                                <button onclick="updateCartQty(${item.id}, 1)" class="w-6 h-6 rounded bg-white border flex items-center justify-center">+</button>
+                                <button onclick="removeFromCart(${item.id})" class="ml-auto text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                badge.classList.add('hidden');
+                subtotalEl.textContent = 'Rs. 0.00';
+                totalEl.textContent = 'Rs. 0.00';
+                deliveryInfo.innerHTML = '';
+                container.innerHTML = `<div class="text-center text-gray-500 py-12"><i data-lucide="shopping-bag" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i><p>Your cart is empty</p></div>`;
+            }
+            lucide.createIcons();
+        }
+
+        function addToCart(productId, qty = 1) {
+            const product = store.products.find(p => p.id === productId);
+            if (!product || product.stock < qty) {
+                showToast('Insufficient stock', 'error');
+                return;
+            }
+            const existing = store.cart.find(item => item.id === productId);
+            if (existing) {
+                if (existing.quantity + qty > product.stock) {
+                    showToast('Maximum stock reached', 'error');
+                    return;
+                }
+                existing.quantity += qty;
+            } else {
+                store.cart.push({ id: product.id, name: product.name, price: product.price, image: product.image, quantity: qty });
+            }
+            saveCart();
+            renderCart();
+            showToast('Added to cart');
+        }
+
+        function updateCartQty(productId, delta) {
+            const item = store.cart.find(i => i.id === productId);
+            const product = store.products.find(p => p.id === productId);
+            if (item) {
+                const newQty = item.quantity + delta;
+                if (newQty <= 0) removeFromCart(productId);
+                else if (newQty <= product.stock) {
+                    item.quantity = newQty;
+                    saveCart();
+                    renderCart();
+                }
+            }
+        }
+
+        function removeFromCart(productId) {
+            store.cart = store.cart.filter(i => i.id !== productId);
+            saveCart();
+            renderCart();
+        }
+
+        function saveCart() {
+            localStorage.setItem('an7_cart', JSON.stringify(store.cart));
+        }
+
+        function processCheckout(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+            
+            const itemCount = store.cart.reduce((sum, i) => sum + i.quantity, 0);
+            const subtotal = store.cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+            const delivery = itemCount >= DELIVERY.FREE_ITEM_COUNT ? 0 : DELIVERY.CHARGE;
+            
+            const orderData = {
+                id: Date.now(),
+                customer: `${formData.get('firstName')} ${formData.get('lastName')}`,
+                customerId: store.currentUser ? store.currentUser.id : null,
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                address: formData.get('address'),
+                city: formData.get('city'),
+                items: [...store.cart],
+                subtotal: subtotal,
+                delivery: delivery,
+                total: subtotal + delivery,
+                status: 'pending',
+                date: new Date().toISOString(),
+                paymentMethod: paymentMethod
+            };
+
+            store.orders.push(orderData);
+            localStorage.setItem('an7_orders', JSON.stringify(store.orders));
+
+            const items = store.cart.map(i => `${i.name} x${i.quantity}`).join(', ');
+            const message = `🛒 NEW ORDER #${orderData.id}\n\n👤 Customer: ${orderData.customer}\n📞 Phone: ${orderData.phone}\n📍 Address: ${orderData.address}, ${orderData.city}\n\n📦 Items: ${items}\n💰 Subtotal: Rs. ${subtotal.toLocaleString()}\n🚚 Delivery: ${delivery === 0 ? 'FREE' : 'Rs. ' + delivery}\n💵 Total: Rs. ${orderData.total.toLocaleString()}\n💳 Payment: ${paymentMethod.toUpperCase()}\n\n${paymentMethod === 'bank' ? '⚠️ Waiting for bank transfer screenshot' : '✅ Cash on Delivery'}`;
+            
+            window.open(`https://wa.me/94717627177?text=${encodeURIComponent(message)}`, '_blank');
+
+            store.cart = [];
+            saveCart();
+            showToast('Order placed! Check WhatsApp.');
+            router.navigate('home');
+        }
+
+        function buyOnWhatsApp(productId) {
+            const product = store.products.find(p => p.id === productId);
+            const qty = parseInt(document.getElementById('qty-input')?.value || 1);
+            const message = `Hi AN7, I want to buy:\n${product.name} x${qty}\nTotal: Rs. ${(product.price * qty).toLocaleString()}\n\nName:\nAddress:`;
+            window.open(`https://wa.me/94717627177?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        // User Auth
+        function handleAccountClick() {
+            if (store.currentUser) {
+                router.navigate('account');
+            } else {
+                router.navigate('login');
+            }
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const email = formData.get('email').toLowerCase();
+            const password = formData.get('password');
+            
+            // Check if trying to register as admin
+            if (email === ADMIN_CREDENTIALS.email) {
+                showToast('This email is reserved. Please use a different email.', 'error');
+                return;
+            }
+            
+            if (store.users.find(u => u.email === email)) {
+                showToast('Email already registered', 'error');
+                return;
+            }
+            
+            const newUser = {
+                id: Date.now(),
+                name: `${formData.get('firstName')} ${formData.get('lastName')}`,
+                email: email,
+                password: Crypto.encrypt(password),
+                createdAt: new Date().toISOString()
+            };
+            
+            store.users.push(newUser);
+            localStorage.setItem('an7_users', JSON.stringify(store.users));
+            
+            store.currentUser = { id: newUser.id, name: newUser.name, email: newUser.email };
+            localStorage.setItem('an7_currentUser', JSON.stringify(store.currentUser));
+            
+            showToast('Account created!');
+            router.navigate('account');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const email = formData.get('email').toLowerCase();
+            const password = formData.get('password');
+            
+            // Check admin login
+            if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+                store.isAdmin = true;
+                sessionStorage.setItem('is_admin', 'true');
+                store.currentUser = { id: 0, name: 'Admin', email: email };
+                localStorage.setItem('an7_currentUser', JSON.stringify(store.currentUser));
+                showToast('Welcome Admin!');
+                router.navigate('admin');
+                return;
+            }
+            
+            // Regular user login
+            const user = store.users.find(u => u.email === email);
+            if (!user || Crypto.decrypt(user.password) !== password) {
+                showToast('Invalid email or password', 'error');
+                return;
+            }
+            
+            store.isAdmin = false;
+            sessionStorage.removeItem('is_admin');
+            store.currentUser = { id: user.id, name: user.name, email: user.email };
+            localStorage.setItem('an7_currentUser', JSON.stringify(store.currentUser));
+            
+            showToast('Welcome back!');
+            router.navigate('account');
+        }
+
+        function logout() {
+            store.currentUser = null;
+            store.isAdmin = false;
+            localStorage.removeItem('an7_currentUser');
+            sessionStorage.removeItem('is_admin');
+            router.navigate('home');
+            updateAdminUI();
+        }
+
+        function updateAdminUI() {
+            const adminBtn = document.getElementById('admin-nav-btn');
+            const mobileAdminBtn = document.getElementById('mobile-admin-btn');
+            if (store.isAdmin) {
+                adminBtn?.classList.remove('hidden');
+                mobileAdminBtn?.classList.remove('hidden');
+            } else {
+                adminBtn?.classList.add('hidden');
+                mobileAdminBtn?.classList.add('hidden');
+            }
+        }
+
+        // Admin Functions
+        function logoutAdmin() {
+            logout();
+        }
+
+        function openProductModal(productId = null) {
+            const modal = document.getElementById('product-modal');
+            
+            // Reset all image inputs
+            document.getElementById('product-form').reset();
+            document.getElementById('image-preview-main').classList.add('hidden');
+            document.getElementById('upload-placeholder-main').classList.remove('hidden');
+            
+            // Reset additional images
+            for (let i = 1; i <= 4; i++) {
+                const preview = document.getElementById(`image-preview-add-${i}`);
+                const placeholder = document.getElementById(`upload-placeholder-add-${i}`);
+                if (preview && placeholder) {
+                    preview.classList.add('hidden');
+                    placeholder.classList.remove('hidden');
+                }
+            }
+            
+            if (productId) {
+                const p = store.products.find(x => x.id === productId);
+                document.getElementById('modal-title').textContent = 'Edit Product';
+                document.getElementById('edit-product-id').value = p.id;
+                document.getElementById('edit-name').value = p.name;
+                document.getElementById('edit-price').value = p.price;
+                document.getElementById('edit-stock').value = p.stock;
+                document.getElementById('edit-description').value = p.description;
+                
+                // Load main image
+                if (p.image) {
+                    document.getElementById('image-preview-main').src = p.image;
+                    document.getElementById('image-preview-main').classList.remove('hidden');
+                    document.getElementById('upload-placeholder-main').classList.add('hidden');
+                    document.getElementById('edit-image-main').value = p.image;
+                }
+                
+                // Load additional images
+                if (p.images) {
+                    p.images.forEach((img, idx) => {
+                        if (img && idx < 4) {
+                            const i = idx + 1;
+                            const preview = document.getElementById(`image-preview-add-${i}`);
+                            const placeholder = document.getElementById(`upload-placeholder-add-${i}`);
+                            if (preview && placeholder) {
+                                preview.src = img;
+                                preview.classList.remove('hidden');
+                                placeholder.classList.add('hidden');
+                                document.getElementById(`edit-image-add-${i}`).value = img;
+                            }
+                        }
+                    });
+                }
+            } else {
+                document.getElementById('modal-title').textContent = 'Add Product';
+                document.getElementById('edit-product-id').value = '';
+            }
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        function saveProduct(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-product-id').value;
+            
+            // Collect additional images
+            const additionalImages = [];
+            for (let i = 1; i <= 4; i++) {
+                const img = document.getElementById(`edit-image-add-${i}`).value;
+                if (img) additionalImages.push(img);
+            }
+            
+            const productData = {
+                id: id ? parseInt(id) : Date.now(),
+                name: document.getElementById('edit-name').value,
+                price: parseFloat(document.getElementById('edit-price').value),
+                stock: parseInt(document.getElementById('edit-stock').value),
+                image: document.getElementById('edit-image-main').value || 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=500&q=80',
+                images: additionalImages,
+                badge: 'New',
+                description: document.getElementById('edit-description').value,
+                category: 'calculator'
+            };
+
+            if (id) {
+                const index = store.products.findIndex(p => p.id === parseInt(id));
+                store.products[index] = { ...store.products[index], ...productData };
+            } else {
+                store.products.push(productData);
+            }
+            
+            localStorage.setItem('an7_products', JSON.stringify(store.products));
+            closeProductModal();
+            router.navigate('admin');
+            showToast(id ? 'Product updated' : 'Product added');
+        }
+
+        function editProduct(id) {
+            openProductModal(id);
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Delete this product?')) {
+                store.products = store.products.filter(p => p.id !== id);
+                localStorage.setItem('an7_products', JSON.stringify(store.products));
+                router.navigate('admin');
+                showToast('Product deleted');
+            }
+        }
+
+        // Utilities
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            msgEl.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            showToast('Message sent!');
+            e.target.reset();
+        }
+
+        function updateQty(delta) {
+            const input = document.getElementById('qty-input');
+            const newVal = parseInt(input.value) + delta;
+            if (newVal >= 1 && newVal <= parseInt(input.max)) input.value = newVal;
+        }
+
+        function showWarrantyInfo() {
+            alert('1 Year Official Warranty on all original Casio products. 6 months warranty on high-copy products. 1-1 replacement for manufacturing defects.');
+        }
+
+        function showShippingInfo() {
+            alert(`Delivery Policy:\n\n• Free delivery for 2 or more items\n• Rs. 300 for single item orders\n• 3-5 business days islandwide\n• Cash on Delivery available`);
+        }
+
+        function showReturnPolicy() {
+            alert('7-day return policy for defective items. Items must be in original packaging. Contact us via WhatsApp for returns.');
+        }
+
+        function showFAQ() {
+            alert('Q: Are these original Casio?\nA: We sell both original and high-quality A-grade copies.\n\nQ: How long is delivery?\nA: 3-5 days islandwide.\n\nQ: Delivery charges?\nA: FREE for 2+ items, Rs. 300 for single item.');
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is logged in
+            if (store.currentUser) {
+                // Check if it's admin
+                if (store.currentUser.email === ADMIN_CREDENTIALS.email) {
+                    store.isAdmin = true;
+                    sessionStorage.setItem('is_admin', 'true');
+                }
+                updateAdminUI();
+            }
+            
+            router.navigate('home');
+            
+            window.addEventListener('scroll', () => {
+                const nav = document.getElementById('navbar');
+                if (window.scrollY > 50) nav.classList.add('shadow-md');
+                else nav.classList.remove('shadow-md');
+            });
+        });
+    </script>
+</body>
+</html>
